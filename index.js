@@ -89,8 +89,8 @@ function session(options) {
 
   /** @smileeio */
   var smileeioOptions = opts.smileeioOptions || {}
-  if (!smileeOptions.sidHeader) {
-    throw new Error('@smileeio/express-session: *smileeOptions.sidHeader* is required!')
+  if (!smileeioOptions.sidHeader) {
+    throw new Error('@smileeio/express-session: *smileeioOptions.sidHeader* is required!')
   }
 
   // get the cookie options
@@ -223,10 +223,10 @@ function session(options) {
 
     /**
      * @smileeio
-     * Get session id from req.sessionID if the cookie doesn't exist
+     * Try to get session id from smileeio sid header if cookie doesn't have it
      */
     // get the session ID from the cookie
-    var cookieId = req.sessionID = (getcookie(req, name, secrets) || req.sessionID);
+    var cookieId = req.sessionID = (getcookie(req, name, secrets) || req.headers[smileeioOptions.sidHeader]);
 
     // set-cookie
     onHeaders(res, function(){
@@ -487,10 +487,10 @@ function session(options) {
 
     /** @smileeio */
     function addSmileeHeaders() {
-      res.append('Access-Control-Allow-Headers', smileeOptions.sidHeader);
+      res.append('Access-Control-Allow-Headers', smileeioOptions.sidHeader);
       // Exposes the response header in the browser
-      res.append('Access-Control-Expose-Headers', smileeOptions.sidHeader);
-      res.setHeader(smileeOptions.sidHeader, req.sessionID);
+      res.append('Access-Control-Expose-Headers', smileeioOptions.sidHeader);
+      res.setHeader(smileeioOptions.sidHeader, req.sessionID);
     }
 
     // generate a session if the browser doesn't send a sessionID
