@@ -213,8 +213,12 @@ function session(options) {
     // expose store
     req.sessionStore = store;
 
+    /**
+     * @smileeio
+     * Get session id from req.sessionID if the cookie doesn't exist
+     */
     // get the session ID from the cookie
-    var cookieId = req.sessionID = getcookie(req, name, secrets);
+    var cookieId = req.sessionID = (getcookie(req, name, secrets) || req.sessionID);
 
     // set-cookie
     onHeaders(res, function(){
