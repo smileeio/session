@@ -87,6 +87,12 @@ var defer = typeof setImmediate === 'function'
 function session(options) {
   var opts = options || {}
 
+  /** @smileeio */
+  var smileeioOptions = opts.smileeioOptions || {}
+  if (!smileeOptions.sidHeader) {
+    throw new Error('@smileeio/express-session: *smileeOptions.sidHeader* is required!')
+  }
+
   // get the cookie options
   var cookieOptions = opts.cookie || {}
 
@@ -179,6 +185,8 @@ function session(options) {
   return function session(req, res, next) {
     // self-awareness
     if (req.session) {
+      /** @smileeio */
+      addSmileeHeaders();
       next()
       return
     }
@@ -476,10 +484,21 @@ function session(options) {
         : rollingSessions || req.session.cookie.expires != null && isModified(req.session);
     }
 
+
+    /** @smileeio */
+    function addSmileeHeaders() {
+      res.append('Access-Control-Allow-Headers', smileeOptions.sidHeader);
+      // Exposes the response header in the browser
+      res.append('Access-Control-Expose-Headers', smileeOptions.sidHeader);
+      res.setHeader(smileeOptions.sidHeader, req.sessionID);
+    }
+
     // generate a session if the browser doesn't send a sessionID
     if (!req.sessionID) {
       debug('no SID sent, generating session');
       generate();
+      /** @smileeio */
+      addSmileeHeaders();
       next();
       return;
     }
@@ -507,6 +526,8 @@ function session(options) {
         return
       }
 
+      /** @smileeio */
+      addSmileeHeaders()
       next()
     });
   };
