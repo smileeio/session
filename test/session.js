@@ -1845,6 +1845,8 @@ describe('session()', function(){
           var server = createServer({ proxy: true }, function (req, res) {
             req.session.cookie.httpOnly = false
             req.session.cookie.secure = true
+            /** @smileeio */
+            req.session.cookie.partitioned = true
             res.end()
           })
 
@@ -1853,6 +1855,8 @@ describe('session()', function(){
           .set('X-Forwarded-Proto', 'https')
           .expect(shouldSetCookieWithoutAttribute('connect.sid', 'HttpOnly'))
           .expect(shouldSetCookieWithAttribute('connect.sid', 'Secure'))
+          /** @smileeio */
+          .expect(shouldSetCookieWithAttribute('connect.sid', 'Partitioned'))
           .expect(200, done)
         })
 

@@ -123,6 +123,8 @@ Cookie.prototype = {
       , domain: this.domain
       , path: this.path
       , sameSite: this.sameSite
+      /** @smileeio */
+      , partitioned: this.partitioned
     }
   },
 

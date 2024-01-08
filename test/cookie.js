@@ -48,6 +48,18 @@ describe('new Cookie()', function () {
       assert.notStrictEqual(cookie.data.foo, 'bar')
     })
 
+    /** @smileeio */
+    describe('partitioned', function () {
+      it('include in cookie.data', function () {
+        var cookie = new Cookie({ partitioned: true })
+
+        assert.strictEqual(typeof cookie, 'object')
+        assert.strictEqual(typeof cookie.data, 'object')
+        assert.strictEqual(cookie.data.partitioned, true)
+      })
+
+    })
+
     describe('expires', function () {
       it('should set expires', function () {
         var expires = new Date(Date.now() + 60000)
