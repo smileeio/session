@@ -185,8 +185,6 @@ function session(options) {
   return function session(req, res, next) {
     // self-awareness
     if (req.session) {
-      /** @smileeio */
-      addSmileeHeaders();
       next()
       return
     }
@@ -456,7 +454,7 @@ function session(options) {
         return false;
       }
 
-      return !saveUninitializedSession && cookieId !== req.sessionID
+      return !saveUninitializedSession && !savedHash && cookieId !== req.sessionID
         ? isModified(req.session)
         : !isSaved(req.session)
     }
@@ -487,9 +485,23 @@ function session(options) {
 
     /** @smileeio */
     function addSmileeHeaders() {
-      res.append('Access-Control-Allow-Headers', smileeioOptions.sidHeader);
+      var allowedHeaders = res.getHeader("Access-Control-Allow-Headers");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        allowedHeaders
+          ? allowedHeaders + ', ' + smileeioOptions.sidHeader
+          : smileeioOptions.sidHeader
+      );
+
       // Exposes the response header in the browser
-      res.append('Access-Control-Expose-Headers', smileeioOptions.sidHeader);
+      var exposedHeaders = res.getHeader("Access-Control-Expose-Headers");
+      res.setHeader(
+        "Access-Control-Expose-Headers",
+        exposedHeaders
+          ? exposedHeaders + ', ' + smileeioOptions.sidHeader
+          : smileeioOptions.sidHeader
+      );
+
       res.setHeader(smileeioOptions.sidHeader, req.sessionID);
     }
 

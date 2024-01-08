@@ -581,7 +581,7 @@ describe('session()', function(){
           request(server)
           .get('/')
           .set('Cookie', cookie(res))
-          .expect(500, /Cannot read property/, done)
+          .expect(500, /Cannot read properties/, done)
         })
       })
     })
@@ -804,7 +804,8 @@ describe('session()', function(){
 
   describe('genid option', function(){
     it('should reject non-function values', function(){
-      assert.throws(session.bind(null, { genid: 'bogus!' }), /genid.*must/)
+      /** @smileeio */
+      assert.throws(session.bind(null, { genid: 'bogus!', smileeioOptions: { sidHeader: 'sid' } }), /genid.*must/)
     });
 
     it('should provide default generator', function(done){
@@ -1262,7 +1263,8 @@ describe('session()', function(){
 
   describe('unset option', function () {
     it('should reject unknown values', function(){
-      assert.throws(session.bind(null, { unset: 'bogus!' }), /unset.*must/)
+      /** @smileeio */
+      assert.throws(session.bind(null, { unset: 'bogus!', smileeioOptions: { sidHeader: 'sid' } }), /unset.*must/)
     });
 
     it('should default to keep', function(done){
@@ -1775,6 +1777,31 @@ describe('session()', function(){
           .expect(200, 'saved', done)
         })
       })
+
+      describe('when saveUninitialized is false', function () {
+        it('should prevent end-of-request save', function (done) {
+          var store = new session.MemoryStore()
+          var server = createServer({ saveUninitialized: false, store: store }, function (req, res) {
+            req.session.hit = true
+            req.session.save(function (err) {
+              if (err) return res.end(err.message)
+              res.end('saved')
+            })
+          })
+
+          request(server)
+            .get('/')
+            .expect(shouldSetSessionInStore(store))
+            .expect(200, 'saved', function (err, res) {
+              if (err) return done(err)
+              request(server)
+                .get('/')
+                .set('Cookie', cookie(res))
+                .expect(shouldSetSessionInStore(store))
+                .expect(200, 'saved', done)
+            })
+        })
+      })
     })
 
     describe('.touch()', function () {
@@ -1979,7 +2006,8 @@ describe('session()', function(){
         var app
 
         before(function () {
-          app = createRequestListener({ secret: 'keyboard cat', cookie: { secure: true } })
+          /** @smileeio */
+          app = createRequestListener({ secret: 'keyboard cat', cookie: { secure: true }, smileeioOptions: { sidHeader: 'sid' } })
         })
 
         it('should set cookie when secure', function (done) {
@@ -2289,6 +2317,9 @@ function createServer (options, respond) {
     server.on('request', arguments[0])
   }
 
+  /** @smileeio */
+  opts = Object.assign({}, opts, { smileeioOptions: { sidHeader: 'sid' } })
+
   return server.on('request', createRequestListener(opts, fn))
 }
 
@@ -2326,6 +2357,9 @@ function createSession(opts) {
   if (!('secret' in options)) {
     options.secret = 'keyboard cat'
   }
+
+  /** @smileeio */
+  options = Object.assign(options, { smileeioOptions: { sidHeader: 'sid' } })
 
   return session(options)
 }
