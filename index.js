@@ -70,6 +70,7 @@ var defer = typeof setImmediate === 'function'
  * Setup session store with the given `options`.
  *
  * @param {Object} [options]
+ * @param {Object} [options.cookieDisabled] Completely disable use of cookies @smileeio
  * @param {Object} [options.cookie] Options for cookie
  * @param {Function} [options.genid]
  * @param {String} [options.name=connect.sid] Session ID cookie name
@@ -95,6 +96,8 @@ function session(options) {
 
   // get the cookie options
   var cookieOptions = opts.cookie || {}
+
+  var cookieDisabled = Boolean(opts.cookieDisabled);
 
   // get the session id generate function
   var generateId = opts.genid || generateSessionId
@@ -224,7 +227,7 @@ function session(options) {
      * Try to get session id from smileeio sid header if cookie doesn't have it
      */
     // get the session ID from the cookie
-    var cookieId = req.sessionID = (getcookie(req, name, secrets) || req.headers[smileeioOptions.sidHeader]);
+    var cookieId = req.sessionID = ((!cookieDisabled && getcookie(req, name, secrets)) || req.headers[smileeioOptions.sidHeader]);
 
     // set-cookie
     onHeaders(res, function(){
@@ -250,7 +253,9 @@ function session(options) {
       }
 
       // set cookie
-      setcookie(res, name, req.sessionID, secrets[0], req.session.cookie.data);
+      if (!cookieDisabled) {
+        setcookie(res, name, req.sessionID, secrets[0], req.session.cookie.data);
+      }
     });
 
     // proxy end() to commit the session
