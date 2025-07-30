@@ -72,8 +72,8 @@ var defer = typeof setImmediate === 'function'
  * @param {Object} [options]
  * @param {Object} [options.smileeioOptions] Options for smileeio
  * @param {String} [options.smileeioOptions.sidHeader] Header name for smileeio session ID
- * @param {(req: any) => boolean} [options.shouldSave] Function to determine if session should be saved
- * @param {Object} [options.cookieDisabled] Completely disable use of cookies @smileeio
+ * @param {(req: any, isNewSession: boolean) => boolean} [options.shouldSave] Function to determine if session should be saved
+ * @param {(req: any) => boolean} [options.cookiesDisabled] Completely disable use of cookies @smileeio
  * @param {Object} [options.cookie] Options for cookie
  * @param {Function} [options.genid]
  * @param {String} [options.name=connect.sid] Session ID cookie name
@@ -100,7 +100,9 @@ function session(options) {
   // get the cookie options
   var cookieOptions = opts.cookie || {}
 
-  var cookieDisabled = Boolean(opts.cookieDisabled);
+  var cookiesDisabled = typeof opts.cookiesDisabled === 'function'
+    ? opts.cookiesDisabled
+    : function() { return false; }
 
   // get the session id generate function
   var generateId = opts.genid || generateSessionId
@@ -234,7 +236,7 @@ function session(options) {
      * Try to get session id from smileeio sid header if cookie doesn't have it
      */
     // get the session ID from the cookie
-    var cookieId = req.sessionID = ((!cookieDisabled && getcookie(req, name, secrets)) || req.headers[smileeioOptions.sidHeader]);
+    var cookieId = req.sessionID = ((!cookiesDisabled(req) && getcookie(req, name, secrets)) || req.headers[smileeioOptions.sidHeader]);
 
     // set-cookie
     onHeaders(res, function(){
@@ -260,7 +262,7 @@ function session(options) {
       }
 
       // set cookie
-      if (!cookieDisabled) {
+      if (!cookiesDisabled(req)) {
         setcookie(res, name, req.sessionID, secrets[0], req.session.cookie.data);
       }
     });
