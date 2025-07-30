@@ -123,6 +123,10 @@ function session(options) {
   // get the save uninitialized session option
   var saveUninitializedSession = opts.saveUninitialized
 
+  var shouldSaveSession = opts.shouldSave || function (req, isNew) {
+    return true
+  }
+
   // get the cookie signing secret
   var secret = opts.secret
 
@@ -466,7 +470,7 @@ function session(options) {
         ? isModified(req.session)
         : !isSaved(req.session);
 
-      return save && typeof options.shouldSave === 'function' ? options.shouldSave(req) : true;
+      return save && shouldSaveSession(req, !savedHash);
     }
 
     // determine if session should be touched
