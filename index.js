@@ -70,6 +70,9 @@ var defer = typeof setImmediate === 'function'
  * Setup session store with the given `options`.
  *
  * @param {Object} [options]
+ * @param {Object} [options.smileeioOptions] Options for smileeio
+ * @param {String} [options.smileeioOptions.sidHeader] Header name for smileeio session ID
+ * @param {(req: any) => boolean} [options.shouldSave] Function to determine if session should be saved
  * @param {Object} [options.cookieDisabled] Completely disable use of cookies @smileeio
  * @param {Object} [options.cookie] Options for cookie
  * @param {Function} [options.genid]
@@ -459,9 +462,11 @@ function session(options) {
         return false;
       }
 
-      return !saveUninitializedSession && !savedHash && cookieId !== req.sessionID
+      var save = !saveUninitializedSession && !savedHash && cookieId !== req.sessionID
         ? isModified(req.session)
-        : !isSaved(req.session)
+        : !isSaved(req.session);
+
+      return save && typeof options.shouldSave === 'function' ? options.shouldSave(req) : true;
     }
 
     // determine if session should be touched
